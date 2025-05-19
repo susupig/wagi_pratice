@@ -4,6 +4,7 @@
 
 from django import forms
 from .models import Post, Image
+from .models import Comment
 
 # 게시글 작성 폼
 class PostForm(forms.ModelForm):
@@ -16,3 +17,8 @@ class ImageForm(forms.ModelForm):
     class Meta:
         model = Image
         fields = ['image']
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']

@@ -9,6 +9,9 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
+from .models import Comment
+from .forms import CommentForm
+
 
 def home(request):
     posts = Post.objects.all().order_by('-created_at')
@@ -17,7 +20,24 @@ def home(request):
 
 def detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    return render(request, 'detail.html', {'post': post})
+    comments = post.comments.all().order_by('-created_at')  # ✅ POST 밖으로 옮김
+
+    comment_form = CommentForm()
+
+    if request.method == 'POST':
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            comment.save()
+            return redirect('detail', post_id=post.id)
+
+    return render(request, 'detail.html', {
+        'post': post,
+        'comments': comments,
+        'comment_form': comment_form,
+    })
 
 
 @login_required
@@ -48,7 +68,6 @@ def write(request):
         'formset': formset
     })
 
-
 @login_required
 def update(request, post_id):
     post = get_object_or_404(Post, id=post_id)
@@ -56,15 +75,34 @@ def update(request, post_id):
     if post.author != request.user:
         return HttpResponseForbidden("수정 권한이 없습니다.")
 
+    ImageFormSet = modelformset_factory(Image, form=ImageForm, extra=3, can_delete=True)
+
     if request.method == 'POST':
         form = PostForm(request.POST, instance=post)
-        if form.is_valid():
+        formset = ImageFormSet(request.POST, request.FILES, queryset=post.images.all())
+
+        if form.is_valid() and formset.is_valid():
             form.save()
+
+            for f in formset:
+                if f.cleaned_data.get('DELETE'):
+                    f.instance.delete()
+                elif f.cleaned_data.get('image'):
+                    image = f.save(commit=False)
+                    image.post = post
+                    image.save()
+
             return redirect('detail', post_id=post.id)
+
     else:
         form = PostForm(instance=post)
+        formset = ImageFormSet(queryset=post.images.all())
 
-    return render(request, 'update.html', {'form': form})   
+    return render(request, 'update.html', {
+        'form': form,
+        'formset': formset,
+    })
+
 
 def signup(request):
     if request.method == 'POST':
@@ -95,3 +133,15 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
+
+@login_required
+def toggle_like(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    user = request.user
+
+    if user in post.likes.all():
+        post.likes.remove(user)  # 이미 눌렀으면 → 좋아요 취소
+    else:
+        post.likes.add(user)     # 안 눌렀으면 → 좋아요 추가
+
+    return redirect('detail', post_id=post.id)

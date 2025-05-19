@@ -1,6 +1,20 @@
 <h1>게시글 수정</h1>
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
+
+    {{ formset.management_form }} <!-- ✅ 이미지 폼셋 관리 -->
+
+    {% for form in formset %}
+        <div style="margin-bottom: 10px;">
+            {{ form.image.label }}: {{ form.image }}
+            {% if form.instance.image %}
+                <br><img src="{{ form.instance.image.url }}" width="200"><br>
+            {% endif %}
+            {{ form.DELETE }} 삭제
+        </div>
+    {% endfor %}
+
     <button type="submit">수정 완료</button>
 </form>
+
