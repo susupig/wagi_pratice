@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
 <h1>게시글 목록</h1>
+
+<!-- ✅ 검색 폼 추가 위치 여기!! -->
+<form method="GET" action="{% url 'home' %}">
+    <input type="text" name="q" placeholder="제목 검색" value="{{ query|default:'' }}">
+    <button type="submit">검색</button>
+</form>
+<!-- ✅ 여기까지 검색 폼 -->
 <ul>
     {% for post in posts %}
         <li><a href="{% url 'detail' post.id %}">{{ post.title }}</a></li>

@@ -19,5 +19,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('post.urls')),  # ← 메인 주소를 post 앱으로 연결!
+    path('', include('post.urls')), 
+    path('', include('accounts.urls')), # 꼭 있어야함
 ]

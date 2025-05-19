@@ -1,20 +1,20 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Post, Image
-from .forms import PostForm, ImageForm
-from django.forms import modelformset_factory
-from django.contrib.auth.models import User
-from django.contrib.auth import login, authenticate
-from django.contrib.auth import login, authenticate
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
+from django.forms import modelformset_factory
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from .models import Comment
-from .forms import CommentForm
+from django.contrib.auth.models import User
+
+from .models import Post, Image, Comment
+from .forms import PostForm, ImageForm, CommentForm
 
 
 def home(request):
-    posts = Post.objects.all().order_by('-created_at')
+    query = request.GET.get('q')  # 검색어 받아오기
+    if query:
+        posts = Post.objects.filter(title__icontains=query).order_by('-created_at')
+    else:
+        posts = Post.objects.all().order_by('-created_at')
     return render(request, 'list.html', {'posts': posts})
 
 
@@ -103,35 +103,6 @@ def update(request, post_id):
         'formset': formset,
     })
 
-
-def signup(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        email = request.POST.get('email')
-
-        user = User.objects.create_user(username=username, password=password, email=email)
-        login(request, user)  # 가입 후 바로 로그인
-        return redirect('home')
-    return render(request, 'signup.html')
-
-
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        user = authenticate(request, username=username, password=password)
-        if user:
-            login(request, user)
-            return redirect('home')
-        else:
-            return render(request, 'login.html', {'error': '로그인 실패'})
-    return render(request, 'login.html')
-
-def logout_view(request):
-    logout(request)
-    return redirect('home')
 
 
 @login_required
