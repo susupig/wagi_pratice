@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+<h1>글 작성</h1>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- 제목 & 내용 -->
+    {{ post_form.as_p }}
+    
+    <!-- 이미지 Formset (여러 장) -->
+    {{ formset.management_form }}
+    {% for form in formset %}
+        {{ form.as_p }}
+    {% endfor %}
+
+    <button type="submit">글 올리기</button>
+</form>

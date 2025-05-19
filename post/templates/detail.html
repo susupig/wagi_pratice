@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<html lang="ko">
+<h1>{{ post.title }}</h1>
+<p>{{ post.content }}</p>
+<a href="/">홈으로</a>
+<a href="{% url 'update' post.id %}">✏️ 수정하기</a>

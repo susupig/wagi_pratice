@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ko">
+<h1>게시글 목록</h1>
+<ul>
+    {% for post in posts %}
+        <li><a href="{% url 'detail' post.id %}">{{ post.title }}</a></li>
+    {% endfor %}
+</ul>
+<a href="{% url 'write' %}">글 작성하기</a>
+
+{% if user.is_authenticated %}
+    <p>{{ user.username }}님 환영합니다! <a href="{% url 'logout' %}">로그아웃</a></p>
+{% else %}
+    <a href="{% url 'login' %}">로그인</a> | <a href="{% url 'signup' %}">회원가입</a>
+{% endif %}
