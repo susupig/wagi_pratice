@@ -17,7 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+
 urlpatterns = [
+    path('user/', include('user.urls')),  # ✅ user 앱 연결
     path('admin/', admin.site.urls),
     path('', include('post.urls')), 
     path('', include('accounts.urls')), # 꼭 있어야함

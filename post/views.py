@@ -4,17 +4,34 @@ from django.forms import modelformset_factory
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-
+from django.db.models import Q
 from .models import Post, Image, Comment
 from .forms import PostForm, ImageForm, CommentForm
 
 
 def home(request):
-    query = request.GET.get('q')  # 검색어 받아오기
+    query = request.GET.get('q')
+    filter_by = request.GET.get('filter')  # 'title', 'content', 'all' 중 하나
+    posts = Post.objects.all()
+
     if query:
-        posts = Post.objects.filter(title__icontains=query).order_by('-created_at')
+        # 쉼표 또는 띄어쓰기로 나눈 키워드 리스트
+        keywords = [word for word in query.replace(',', ' ').split() if word]
+
+        # Q 객체로 다중 조건 OR 검색 구성
+        q_obj = Q()
+        for word in keywords:
+            if filter_by == 'title':
+                q_obj |= Q(title__icontains=word)
+            elif filter_by == 'content':
+                q_obj |= Q(content__icontains=word)
+            else:  # 전체 or 선택 안 했을 경우
+                q_obj |= Q(title__icontains=word) | Q(content__icontains=word)
+
+        posts = posts.filter(q_obj).distinct().order_by('-created_at')
     else:
-        posts = Post.objects.all().order_by('-created_at')
+        posts = posts.order_by('-created_at')
+
     return render(request, 'list.html', {'posts': posts})
 
 
@@ -31,6 +48,9 @@ def detail(request, post_id):
             comment.post = post
             comment.author = request.user
             comment.save()
+
+
+
             return redirect('detail', post_id=post.id)
 
     return render(request, 'detail.html', {
@@ -58,7 +78,7 @@ def write(request):
                     image = form['image']
                     Image.objects.create(post=post, image=image)
 
-            return redirect('home')
+            return redirect('post:home')
     else:
         post_form = PostForm()
         formset = ImageFormSet(queryset=Image.objects.none())

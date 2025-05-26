@@ -3,10 +3,11 @@
 <h1>{{ post.title }}</h1>
 <p>{{ post.content }}</p>
 <a href="/">홈으로</a>
-<a href="{% url 'update' post.id %}">✏️ 수정하기</a>
+<a href="{% url 'post:update' post.id %}">✏️ 수정하기</a>
 <!-- ❤️ 좋아요 버튼 -->
 
-<form action="{% url 'toggle_like' post.id %}" method="POST">
+<form action="{% url 'post:toggle_like' post.id %}" method="POST">
+
     {% csrf_token %}
     <button type="submit">
         {% if user in post.likes.all %}
@@ -33,5 +34,10 @@
         <button type="submit">댓글 작성</button>
     </form>
 {% else %}
-    <p><a href="{% url 'login' %}">로그인</a> 후 댓글을 작성할 수 있어요.</p>
+   <!-- 예: user 앱으로 옮겼다면 -->
+<p><a href="{% url 'user:login' %}">로그인</a> 후 댓글을 작성할 수 있어요.</p>
+
 {% endif %}
+
+
+
